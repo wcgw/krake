@@ -1,7 +1,9 @@
 [package]
 name = "krake"
-version = "0.1.0"
-authors = ["alexsnaps"]
+version = "0.0.1"
+authors = ["Alex Snaps <alex@wcgw.dev>"]
+license = "GPL-3.0-or-later"
 edition = "2018"
 
 [dependencies]
+libusb = "0.3"
