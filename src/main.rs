@@ -1,7 +1,9 @@
 extern crate libusb;
 
-use libusb::Device;
+use std::process::exit;
 use std::time::Duration;
+
+use libusb::Device;
 
 const VID_NZXT: u16 = 0x1e71;
 const PID_KRAKEN_X62: u16 = 0x170e;
@@ -14,9 +16,25 @@ struct UsbDevice<'a> {
 }
 
 fn main() {
+  match std::env::args().nth(1) {
+    Some(command) => match command.as_str() {
+      "version" => println!("Krake v0.0.1 - Controls for NZXT bells & whistles"),
+      "list" => list_nzxt_devices(),
+      _ => {
+        println!("Unsupported command: {}", command);
+        exit(1);
+      }
+    },
+    None => {
+      println!("Please provide a command: list, version");
+      exit(1);
+    }
+  }
+}
+
+fn list_nzxt_devices() -> () {
   let context = libusb::Context::new().unwrap();
   let timeout = Duration::from_secs(1);
-
   let mut devices = vec![];
 
   for device in context.devices().unwrap().iter() {
@@ -34,26 +52,26 @@ fn main() {
       match device_desc.product_id() {
         PID_KRAKEN_X62 => {
           println!(
-            "Found NZXT Kraken X62: Bus {:03} Device {:03}",
+            "Bus {:03} Device {:03}: NZXT Kraken X62",
             device.bus_number(),
             device.address()
           );
         }
         PID_H500I => println!(
-          "Found NZXT H500i controller: Bus {:03} Device {:03}",
+          "Bus {:03} Device {:03}: NZXT H500i controller",
           device.bus_number(),
           device.address()
         ),
         _ => println!(
-          "Found unknown NZXT Device:{:04x} (iProduct: {:3} [{}])  at Bus {:03} Device {:03}",
+          "Bus {:03} Device {:03}: Unknown NZXT Device:{:04x} (product: {:3} [{}])",
+          device.bus_number(),
+          device.address(),
           device_desc.vendor_id(),
           device_desc.product_string_index().unwrap_or(0),
           usb_device.as_mut().map_or(String::new(), |h| h
             .handle
             .read_product_string(h.language, &device_desc, h.timeout)
-            .unwrap_or(String::new())),
-          device.bus_number(),
-          device.address()
+            .unwrap_or(String::new()))
         ),
       }
     }
