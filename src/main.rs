@@ -87,24 +87,23 @@ fn list_nzxt_devices() -> () {
           println!(
             "Bus {:03} Device {:03}: NZXT Kraken X62",
             device.bus_number(),
-            device.address()
+            device.address(),
           );
         }
         PID_SMART_DEVICE => println!(
           "Bus {:03} Device {:03}: NZXT Smart Device",
           device.bus_number(),
-          device.address()
+          device.address(),
         ),
         _ => println!(
-          "Bus {:03} Device {:03}: Unknown NZXT Device:{:04x} (product: {:3} [{}])",
+          "Bus {:03} Device {:03}: Unknown NZXT Device: {:04x} (product: {})",
           device.bus_number(),
           device.address(),
-          device_desc.vendor_id(),
-          device_desc.product_string_index().unwrap_or(0),
-          usb_device.as_mut().map_or("unknown".to_owned(), |h| h
+          device_desc.product_id(),
+          usb_device.as_mut().map_or("no access?!".to_owned(), |h| h
             .handle
             .read_product_string(h.language, &device_desc, h.timeout)
-            .unwrap_or("unidentified".to_owned()))
+            .unwrap_or("unidentified".to_owned())),
         ),
       }
     }
