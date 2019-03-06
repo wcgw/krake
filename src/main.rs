@@ -6,8 +6,9 @@ use std::time::Duration;
 use libusb::Device;
 
 const VID_NZXT: u16 = 0x1e71;
+
 const PID_KRAKEN_X62: u16 = 0x170e;
-const PID_H500I: u16 = 0x1714;
+const PID_SMART_DEVICE: u16 = 0x1714;
 
 struct UsbDevice<'a> {
   handle: libusb::DeviceHandle<'a>,
@@ -57,8 +58,8 @@ fn list_nzxt_devices() -> () {
             device.address()
           );
         }
-        PID_H500I => println!(
-          "Bus {:03} Device {:03}: NZXT H500i controller",
+        PID_SMART_DEVICE => println!(
+          "Bus {:03} Device {:03}: NZXT Smart Device",
           device.bus_number(),
           device.address()
         ),
@@ -68,10 +69,10 @@ fn list_nzxt_devices() -> () {
           device.address(),
           device_desc.vendor_id(),
           device_desc.product_string_index().unwrap_or(0),
-          usb_device.as_mut().map_or(String::new(), |h| h
+          usb_device.as_mut().map_or("unknown".to_owned(), |h| h
             .handle
             .read_product_string(h.language, &device_desc, h.timeout)
-            .unwrap_or(String::new()))
+            .unwrap_or("unidentified".to_owned()))
         ),
       }
     }
