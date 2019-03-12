@@ -12,6 +12,10 @@ On MacOS w/ home brew:
 ```
 $ brew install pkg-config
 $ brew install libusb
+```
+
+### Building and running
+```
 $ cargo build --release
 $ ./target/release/krake list
 Bus 001 Device 008: NZXT Smart Device
