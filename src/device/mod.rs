@@ -5,21 +5,21 @@ pub mod smart_device;
 
 pub const NZXT_PID: u16 = 0x1e71;
 
-pub trait Device {
-  fn print_info(&self) -> ();
+pub struct DeviceManager {
+  context: libusb::Context,
 }
 
-pub struct UsbDevice<'a> {
-  device: libusb::Device<'a>,
-  handle: libusb::DeviceHandle<'a>,
-  language: libusb::Language,
-  timeout: Duration,
-}
+impl DeviceManager {
+  pub fn new() -> Result<Self, &'static str> {
+    match libusb::Context::new() {
+      Ok(context) => Ok(DeviceManager { context }),
+      Err(err) => Err(err.strerror()),
+    }
+  }
 
-impl<'a> UsbDevice<'a> {
-  pub fn all(context: &libusb::Context) -> Vec<UsbDevice> {
+  pub fn all(&self) -> Vec<UsbDevice> {
     let mut devices = vec![];
-    for device in context.devices().unwrap().iter() {
+    for device in self.context.devices().unwrap().iter() {
       let device_desc = device.device_descriptor().unwrap();
       if device_desc.vendor_id() == NZXT_PID {
         let usb_device: Result<UsbDevice, &str> = device.try_into();
@@ -31,6 +31,17 @@ impl<'a> UsbDevice<'a> {
     }
     devices
   }
+}
+
+pub trait Device {
+  fn print_info(&self) -> ();
+}
+
+pub struct UsbDevice<'a> {
+  device: libusb::Device<'a>,
+  handle: libusb::DeviceHandle<'a>,
+  language: libusb::Language,
+  timeout: Duration,
 }
 
 impl<'a> Device for UsbDevice<'a> {

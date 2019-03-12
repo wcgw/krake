@@ -11,7 +11,7 @@ mod device;
 
 //use crate::device::kraken;
 //use crate::device::smart_device;
-use crate::device::Device;
+use crate::device::{Device, DeviceManager};
 use crate::device::UsbDevice;
 
 fn main() {
@@ -146,14 +146,21 @@ fn leds_on() -> () {
 //}
 
 fn list_nzxt_devices() -> () {
-  let context = libusb::Context::new().unwrap();
-  let devices = UsbDevice::all(&context);
+  match DeviceManager::new() {
+    Ok(device_manager) => {
+      let devices = device_manager.all();
 
-  if devices.len() > 0 {
-    for device in devices {
-      device.print_info();
-    }
-  } else {
-    println!("No NZXT devices found!");
+      if devices.len() > 0 {
+        for device in devices {
+          device.print_info();
+        }
+      } else {
+        println!("No NZXT devices found!");
+      }
+    },
+    Err(msg) => {
+      println!("Couldn't create DeviceManager: {}", msg);
+      exit(1)
+    },
   }
 }
