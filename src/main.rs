@@ -11,8 +11,8 @@ mod device;
 
 //use crate::device::kraken;
 //use crate::device::smart_device;
-use crate::device::UsbDevice;
 use crate::device::Device;
+use crate::device::UsbDevice;
 
 fn main() {
   match std::env::args().nth(1) {
@@ -56,77 +56,77 @@ fn main() {
 }
 
 fn leds_off() -> () {
-//  let context = libusb::Context::new().unwrap();
-//  let first_device = find_first_device(smart_device::PRODUCT_ID, &context);
-//  match first_device {
-//    Some(device) => match device.active_config_descriptor() {
-//      Ok(config_desc) => {
-//        if config_desc.num_interfaces() != 1 {
-//          println!("Dunno what interface to choose here! :(");
-//          exit(1);
-//        }
-//        match config_desc.interfaces().last() {
-//          Some(inter) => {
-//            let desc = inter.descriptors().next().unwrap();
-//            for endpoint in desc.endpoint_descriptors() {
-//              if endpoint.direction() == Direction::In
-//                && endpoint.usage_type() == UsageType::Data
-//                && endpoint.transfer_type() == TransferType::Interrupt
-//              {
-//                match get_usb_device(&device) {
-//                  Some(usb_device) => {
-//                    let mut handle = usb_device.handle;
-//                    let claimed = handle.kernel_driver_active(inter.number()).unwrap();
-//                    if claimed {
-//                      println!("Detaching kernel driver!");
-//                      handle.detach_kernel_driver(inter.number()).unwrap();
-//                    }
-//                    match handle.claim_interface(inter.number()) {
-//                      Ok(()) => match handle.write_interrupt(endpoint.number(), &[0], usb_device.timeout) {
-//                        Ok(written) => {
-//                          println!("LEDs off! Wrote {} bytes", written);
-//                        },
-//                        Err(err) => {
-//                          println!("Failed! {}", err);
-//                          exit(1);
-//                        },
-//                      },
-//                      Err(err) => {
-//                        println!("Couldn't claim device: {}", err);
-//                        exit(1);
-//                      },
-//                    }
-//                    if claimed {
-//                      let result = handle.attach_kernel_driver(inter.number());
-//                      if result.is_err() {
-//                        println!("Error re attaching kernel driver: {}", result.err().unwrap())
-//                      }
-//                    }
-//                  },
-//                  None => {
-//                    println!("Couldn't open device!");
-//                    exit(1);
-//                  },
-//                }
-//              }
-//            }
-//          },
-//          None => {
-//            println!("No interface!");
-//            exit(1);
-//          },
-//        }
-//      },
-//      Err(err) => {
-//        println!("No active config: {}", err);
-//        exit(1);
-//      },
-//    },
-//    None => {
-//      println!("No device found!");
-//      exit(1);
-//    },
-//  }
+  //  let context = libusb::Context::new().unwrap();
+  //  let first_device = find_first_device(smart_device::PRODUCT_ID, &context);
+  //  match first_device {
+  //    Some(device) => match device.active_config_descriptor() {
+  //      Ok(config_desc) => {
+  //        if config_desc.num_interfaces() != 1 {
+  //          println!("Dunno what interface to choose here! :(");
+  //          exit(1);
+  //        }
+  //        match config_desc.interfaces().last() {
+  //          Some(inter) => {
+  //            let desc = inter.descriptors().next().unwrap();
+  //            for endpoint in desc.endpoint_descriptors() {
+  //              if endpoint.direction() == Direction::In
+  //                && endpoint.usage_type() == UsageType::Data
+  //                && endpoint.transfer_type() == TransferType::Interrupt
+  //              {
+  //                match get_usb_device(&device) {
+  //                  Some(usb_device) => {
+  //                    let mut handle = usb_device.handle;
+  //                    let claimed = handle.kernel_driver_active(inter.number()).unwrap();
+  //                    if claimed {
+  //                      println!("Detaching kernel driver!");
+  //                      handle.detach_kernel_driver(inter.number()).unwrap();
+  //                    }
+  //                    match handle.claim_interface(inter.number()) {
+  //                      Ok(()) => match handle.write_interrupt(endpoint.number(), &[0], usb_device.timeout) {
+  //                        Ok(written) => {
+  //                          println!("LEDs off! Wrote {} bytes", written);
+  //                        },
+  //                        Err(err) => {
+  //                          println!("Failed! {}", err);
+  //                          exit(1);
+  //                        },
+  //                      },
+  //                      Err(err) => {
+  //                        println!("Couldn't claim device: {}", err);
+  //                        exit(1);
+  //                      },
+  //                    }
+  //                    if claimed {
+  //                      let result = handle.attach_kernel_driver(inter.number());
+  //                      if result.is_err() {
+  //                        println!("Error re attaching kernel driver: {}", result.err().unwrap())
+  //                      }
+  //                    }
+  //                  },
+  //                  None => {
+  //                    println!("Couldn't open device!");
+  //                    exit(1);
+  //                  },
+  //                }
+  //              }
+  //            }
+  //          },
+  //          None => {
+  //            println!("No interface!");
+  //            exit(1);
+  //          },
+  //        }
+  //      },
+  //      Err(err) => {
+  //        println!("No active config: {}", err);
+  //        exit(1);
+  //      },
+  //    },
+  //    None => {
+  //      println!("No device found!");
+  //      exit(1);
+  //    },
+  //  }
 }
 
 fn leds_on() -> () {
@@ -157,4 +157,3 @@ fn list_nzxt_devices() -> () {
     println!("No NZXT devices found!");
   }
 }
-

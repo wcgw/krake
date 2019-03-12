@@ -16,15 +16,16 @@ pub struct UsbDevice<'a> {
   timeout: Duration,
 }
 
-impl <'a> UsbDevice<'a> {
-  pub fn all(context: & libusb::Context) -> Vec<UsbDevice> {
+impl<'a> UsbDevice<'a> {
+  pub fn all(context: &libusb::Context) -> Vec<UsbDevice> {
     let mut devices = vec![];
     for device in context.devices().unwrap().iter() {
       let device_desc = device.device_descriptor().unwrap();
       if device_desc.vendor_id() == NZXT_PID {
-        let usb_device = as_usb_device(device);
-        if usb_device.is_some() {
-          devices.push(usb_device.unwrap());
+        let usb_device: Result<UsbDevice, &str> = device.try_into();
+        match usb_device {
+          Ok(dev) => devices.push(dev),
+          Err(msg) => println!("Error: {}", msg),
         }
       }
     }
@@ -32,18 +33,16 @@ impl <'a> UsbDevice<'a> {
   }
 }
 
-impl <'a> Device for UsbDevice<'a> {
+impl<'a> Device for UsbDevice<'a> {
   fn print_info(&self) -> () {
     let device_desc = self.device.device_descriptor().unwrap();
 
     match device_desc.product_id() {
-      kraken::x62::PRODUCT_ID => {
-        println!(
-          "Bus {:03} Device {:03}: NZXT Kraken X62",
-          self.device.bus_number(),
-          self.device.address(),
-        );
-      },
+      kraken::X62::PRODUCT_ID => println!(
+        "Bus {:03} Device {:03}: NZXT Kraken X62",
+        self.device.bus_number(),
+        self.device.address(),
+      ),
       smart_device::PRODUCT_ID => println!(
         "Bus {:03} Device {:03}: NZXT Smart Device",
         self.device.bus_number(),
@@ -54,31 +53,39 @@ impl <'a> Device for UsbDevice<'a> {
         self.device.bus_number(),
         self.device.address(),
         device_desc.product_id(),
-        self.handle
-            .read_product_string(self.language, &device_desc, self.timeout)
-            .unwrap_or("unidentified".to_owned())),
+        self
+          .handle
+          .read_product_string(self.language, &device_desc, self.timeout)
+          .unwrap_or("unidentified".to_owned())
+      ),
     }
   }
 }
 
-fn as_usb_device(device: libusb::Device) -> Option<UsbDevice> {
-  let timeout = Duration::from_millis(200);
-  match device.open() {
-    Ok(handle) => match handle.read_languages(timeout) {
-      Ok(l) => {
-        if l.len() > 0 {
-          Some(UsbDevice {
-            device,
-            handle,
-            language: l[0],
-            timeout,
-          })
-        } else {
-          None
-        }
+trait TryInto<T> {
+  fn try_into(self: Self) -> Result<T, &'static str>;
+}
+
+impl<'a> TryInto<UsbDevice<'a>> for libusb::Device<'a> {
+  fn try_into(self) -> Result<UsbDevice<'a>, &'static str> {
+    let timeout = Duration::from_millis(200);
+    match self.open() {
+      Ok(handle) => match handle.read_languages(timeout) {
+        Ok(l) => {
+          if l.len() > 0 {
+            Ok(UsbDevice {
+              device: self,
+              handle,
+              language: l[0],
+              timeout,
+            })
+          } else {
+            Err("No language")
+          }
+        },
+        Err(err) => Err(err.strerror()),
       },
-      Err(_) => None,
-    },
-    Err(_) => None,
+      Err(err) => Err(err.strerror()),
+    }
   }
 }
