@@ -50,14 +50,22 @@ impl<'a> Device for UsbDevice<'a> {
 
     match device_desc.product_id() {
       kraken::X62::PRODUCT_ID => println!(
-        "Bus {:03} Device {:03}: NZXT Kraken X62",
+        "Bus {:03} Device {:03}: NZXT Kraken X62 [s/n: {}]",
         self.device.bus_number(),
         self.device.address(),
+        self
+          .handle
+          .read_serial_number_string(self.language, &device_desc, self.timeout)
+          .unwrap_or("unknown".to_owned()),
       ),
       smart_device::PRODUCT_ID => println!(
-        "Bus {:03} Device {:03}: NZXT Smart Device",
+        "Bus {:03} Device {:03}: NZXT Smart Device [s/n: {}]",
         self.device.bus_number(),
         self.device.address(),
+        self
+          .handle
+          .read_serial_number_string(self.language, &device_desc, self.timeout)
+          .unwrap_or("unknown".to_owned()),
       ),
       _ => println!(
         "Bus {:03} Device {:03}: Unknown NZXT Device: {:04x} (product: {})",

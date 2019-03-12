@@ -11,8 +11,8 @@ mod device;
 
 //use crate::device::kraken;
 //use crate::device::smart_device;
-use crate::device::{Device, DeviceManager};
 use crate::device::UsbDevice;
+use crate::device::{Device, DeviceManager};
 
 fn main() {
   match std::env::args().nth(1) {
