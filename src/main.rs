@@ -11,7 +11,6 @@ mod device;
 
 //use crate::device::kraken;
 //use crate::device::smart_device;
-use crate::device::UsbDevice;
 use crate::device::{Device, DeviceManager};
 
 fn main() {
@@ -152,7 +151,10 @@ fn list_nzxt_devices() -> () {
 
       if devices.len() > 0 {
         for device in devices {
-          device.print_info();
+          match device {
+            Ok(device) => device.print_info(),
+            Err(msg) => println!("Error: {}", msg),
+          }
         }
       } else {
         println!("No NZXT devices found!");

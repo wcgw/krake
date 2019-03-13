@@ -17,15 +17,17 @@ impl DeviceManager {
     }
   }
 
-  pub fn all(&self) -> Vec<UsbDevice> {
+  pub fn all(&self) -> Vec<Result<UsbDevice, String>> {
     let mut devices = vec![];
     for device in self.context.devices().unwrap().iter() {
       let device_desc = device.device_descriptor().unwrap();
       if device_desc.vendor_id() == NZXT_PID {
+        let bus = device.bus_number();
+        let addr = device.address();
         let usb_device: Result<UsbDevice, &str> = device.try_into();
         match usb_device {
-          Ok(dev) => devices.push(dev),
-          Err(msg) => println!("Error: {}", msg),
+          Ok(dev) => devices.push(Ok(dev)),
+          Err(msg) => devices.push(Err(format!("Couldn't open device at {:03}:{:03}: {}", bus, addr, msg))),
         }
       }
     }
