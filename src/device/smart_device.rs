@@ -30,11 +30,14 @@ impl<'a> SmartDevice<'a> {
       LedState::On => {
         let mut data: [u8; 128] = [0; 128];
 
-        for i in 0..55 {
-          data[6 + i] = 0xff;
+        for i in 5..35 { // 5..35 controls the first strip
+          data[i] = 0xff;
         }
-        for i in 0..63 {
-          data[65 + i] = 0xff;
+        for i in 35..62 { // 35..62 controls second strip -1
+          data[i] = 0xff;
+        }
+        for i in 65..68 { // 65..68 controls the last led
+          data[i] = 0xff;
         }
 
         data[0] = 0x2;
