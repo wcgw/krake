@@ -110,13 +110,15 @@ impl<'a> SmartDevice<'a> {
 
 fn led_message() -> [u8; 128] {
   let mut data: [u8; 128] = [0; 128];
-  data[0] = 0x2;
+  data[0] = 0x02; // document me
   data[1] = 0x4b; // LEDs
-  data[2] = 0x0;
-  data[3] = 0x0;
-  data[4] = 0x2;
-  data[63] = 0x0; // WTF?
-  data[64] = 0x3; // WTF?
-  data[65] = 0x0; // WTF?
+  data[2] = 0x00; // document me
+  data[3] = 0x00; // document me
+  data[4] = 0x02; // document me
+                  // [GRB] colors for 19 leds
+  data[63] = 0x00; // WTF?
+  data[64] = 0x03; // WTF?
+  data[65] = 0x00; // WTF?
+                   // [GRB] last led here
   data
 }
