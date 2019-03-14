@@ -20,36 +20,37 @@ impl<'a> SmartDevice<'a> {
   pub fn leds(&mut self, state: LedState) -> Result<(), String> {
     match state {
       LedState::Off => {
-        let mut data: [u8; 128] = [0; 128];
-        data[0] = 0x2;
-        data[1] = 0x4b;
-        data[4] = 0x2;
-        data[64] = 0x3;
-        self.message(&mut data)
+        let data = led_message();
+        self.write(&data)
       },
       LedState::On => {
-        let mut data: [u8; 128] = [0; 128];
+        let mut data = led_message();
 
-        for i in 5..35 { // 5..35 controls the first strip
-          data[i] = 0xff;
+        for i in (5..35).step_by(3) {
+          // 5..35 controls the first strip
+          data[i + 0] = 0xff; // G
+          data[i + 1] = 0x00; // R
+          data[i + 2] = 0x00; // B
         }
-        for i in 35..62 { // 35..62 controls second strip -1
-          data[i] = 0xff;
+        for i in (35..62).step_by(3) {
+          // 35..62 controls second strip -1
+          data[i + 0] = 0x00; // G
+          data[i + 1] = 0xff; // R
+          data[i + 2] = 0x00; // B
         }
-        for i in 65..68 { // 65..68 controls the last led
-          data[i] = 0xff;
+        for i in (65..68).step_by(3) {
+          // 65..68 controls the last led
+          data[i + 0] = 0x00; // G
+          data[i + 1] = 0x00; // R
+          data[i + 2] = 0xff; // B
         }
 
-        data[0] = 0x2;
-        data[1] = 0x4b;
-        data[4] = 0x2;
-        data[64] = 0x3;
-        self.message(&mut data)
+        self.write(&data)
       },
     }
   }
 
-  fn message(&mut self, data: &mut [u8; 128]) -> Result<(), String> {
+  fn write(&mut self, data: &[u8; 128]) -> Result<(), String> {
     match self.usb_device.device.active_config_descriptor() {
       Ok(config_desc) => {
         if config_desc.num_interfaces() != 1 {
@@ -105,4 +106,17 @@ impl<'a> SmartDevice<'a> {
     }
     Ok(())
   }
+}
+
+fn led_message() -> [u8; 128] {
+  let mut data: [u8; 128] = [0; 128];
+  data[0] = 0x2;
+  data[1] = 0x4b; // LEDs
+  data[2] = 0x0;
+  data[3] = 0x0;
+  data[4] = 0x2;
+  data[63] = 0x0; // WTF?
+  data[64] = 0x3; // WTF?
+  data[65] = 0x0; // WTF?
+  data
 }
