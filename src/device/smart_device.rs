@@ -7,6 +7,7 @@ pub struct SmartDevice<'a> {
   usb_device: UsbDevice<'a>,
 }
 
+// todo this is stupid, this should be an RGB value, when 0x000000 is off!
 pub enum LedState {
   On,
   Off,
