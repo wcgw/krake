@@ -103,16 +103,18 @@ impl<'a> SmartDevice<'a> {
                   handle.detach_kernel_driver(inter.number()).unwrap();
                 }
                 match handle.claim_interface(inter.number()) {
-                  Ok(()) => {
-                    println!("Writing to endpoint {}", endpoint.number());
-                    match handle.write_interrupt(endpoint.number(), data, self.usb_device.timeout) {
-                      Ok(written) => {
-                        println!("Wrote {} bytes", written);
-                      },
-                      Err(err) => {
-                        return Err(format!("Failed! {}", err));
-                      },
-                    }
+                  Ok(()) => match handle.write_interrupt(endpoint.number(), data, self.usb_device.timeout) {
+                    Ok(written) => {
+                      println!(
+                        "Wrote {} bytes to endpoint {} [0x{:x}]",
+                        written,
+                        endpoint.number(),
+                        endpoint.address()
+                      );
+                    },
+                    Err(err) => {
+                      return Err(format!("Failed! {}", err));
+                    },
                   },
                   Err(err) => {
                     return Err(format!("Couldn't claim device: {}", err));
