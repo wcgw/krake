@@ -11,7 +11,7 @@ mod device;
 
 //use crate::device::kraken;
 //use crate::device::smart_device;
-use crate::device::smart_device::LedState;
+use crate::device::smart_device::Color;
 use crate::device::smart_device::SmartDevice;
 use crate::device::{Device, DeviceManager};
 
@@ -32,15 +32,16 @@ fn main() {
         // So that: `$ krake leds candle` would only affect the case, no-ops on Kraken
         // while: `$ krake leds breathing` would apply to both, so would `leds off`
         Some(state) => match state.as_str() {
-          "on" => leds_on(),
-          "off" => leds_off(),
+          "red" => leds(Color::red()),
+          "white" => leds(Color::white()),
+          "off" => leds(Color::off()),
           _ => {
             println!("Unknown state '{}' for LEDs!", state);
             exit(1);
           },
         },
         None => {
-          println!("What state for your LEDs? (on|off)");
+          println!("What state for your LEDs? (off|red|white)");
           exit(1);
         },
       },
@@ -56,7 +57,7 @@ fn main() {
   }
 }
 
-fn leds_off() -> () {
+fn leds(color: Color) -> () {
   match DeviceManager::new() {
     Ok(device_manager) => {
       let devices = device_manager.all();
@@ -67,46 +68,12 @@ fn leds_off() -> () {
             Ok(device) => {
               if device.device_id() == device::smart_device::PRODUCT_ID {
                 let mut smart_device = SmartDevice::new(device);
-                match smart_device.leds(LedState::Off) {
+                match smart_device.leds(color.clone()) {
                   Err(err) => {
-                    println!("Couldn't turn LEDs off: {}", err);
+                    println!("Couldn't change LEDs: {}", err);
                     exit(1)
                   },
-                  Ok(()) => println!("LEDs off!"),
-                }
-              }
-            },
-            Err(msg) => println!("Error: {}", msg),
-          }
-        }
-      } else {
-        println!("No NZXT devices found!");
-      }
-    },
-    Err(msg) => {
-      println!("Couldn't create DeviceManager: {}", msg);
-      exit(1)
-    },
-  }
-}
-
-fn leds_on() -> () {
-  match DeviceManager::new() {
-    Ok(device_manager) => {
-      let devices = device_manager.all();
-
-      if devices.len() > 0 {
-        for device in devices {
-          match device {
-            Ok(device) => {
-              if device.device_id() == device::smart_device::PRODUCT_ID {
-                let mut smart_device = SmartDevice::new(device);
-                match smart_device.leds(LedState::On) {
-                  Err(err) => {
-                    println!("Couldn't turn LEDs on: {}", err);
-                    exit(1)
-                  },
-                  Ok(()) => println!("LEDs on!"),
+                  Ok(()) => {},
                 }
               }
             },

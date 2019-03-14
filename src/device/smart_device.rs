@@ -7,10 +7,33 @@ pub struct SmartDevice<'a> {
   usb_device: UsbDevice<'a>,
 }
 
-// todo this is stupid, this should be an RGB value, when 0x000000 is off!
-pub enum LedState {
-  On,
-  Off,
+#[derive(Clone, Debug)]
+pub struct Color {
+  r: u8,
+  g: u8,
+  b: u8,
+}
+
+impl Color {
+  pub fn off() -> Color {
+    Color { r: 0, g: 0, b: 0 }
+  }
+
+  pub fn white() -> Color {
+    Color {
+      r: 0xff,
+      g: 0xff,
+      b: 0xff,
+    }
+  }
+
+  pub fn red() -> Color {
+    Color {
+      r: 0xff,
+      g: 0x00,
+      b: 0x00,
+    }
+  }
 }
 
 impl<'a> SmartDevice<'a> {
@@ -18,37 +41,29 @@ impl<'a> SmartDevice<'a> {
     SmartDevice { usb_device }
   }
 
-  pub fn leds(&mut self, state: LedState) -> Result<(), String> {
-    match state {
-      LedState::Off => {
-        let data = led_message();
-        self.write(&data)
-      },
-      LedState::On => {
-        let mut data = led_message();
+  pub fn leds(&mut self, color: Color) -> Result<(), String> {
+    let mut data = led_message();
 
-        // 5..35 controls the first strip
-        for i in (5..35).step_by(3) {
-          data[i + 0] = 0xff; // G
-          data[i + 1] = 0x00; // R
-          data[i + 2] = 0x00; // B
-        }
-        // 35..62 controls second strip -1
-        for i in (35..62).step_by(3) {
-          data[i + 0] = 0x00; // G
-          data[i + 1] = 0xff; // R
-          data[i + 2] = 0x00; // B
-        }
-        // 65..68 controls the last led
-        for i in (65..68).step_by(3) {
-          data[i + 0] = 0x00; // G
-          data[i + 1] = 0x00; // R
-          data[i + 2] = 0xff; // B
-        }
-
-        self.write(&data)
-      },
+    // 5..35 controls the first strip
+    for i in (5..35).step_by(3) {
+      data[i + 0] = color.g; // G
+      data[i + 1] = color.r; // R
+      data[i + 2] = color.b; // B
     }
+    // 35..62 controls second strip -1
+    for i in (35..62).step_by(3) {
+      data[i + 0] = color.g; // G
+      data[i + 1] = color.r; // R
+      data[i + 2] = color.b; // B
+    }
+    // 65..68 controls the last led
+    for i in (65..68).step_by(3) {
+      data[i + 0] = color.g; // G
+      data[i + 1] = color.r; // R
+      data[i + 2] = color.b; // B
+    }
+
+    self.write(&data)
   }
 
   fn write(&mut self, data: &[u8; 128]) -> Result<(), String> {
