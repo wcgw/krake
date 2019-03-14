@@ -37,6 +37,7 @@ impl DeviceManager {
 
 pub trait Device {
   fn print_info(&self) -> ();
+  fn device_id(&self) -> u16;
 }
 
 pub struct UsbDevice<'a> {
@@ -80,6 +81,10 @@ impl<'a> Device for UsbDevice<'a> {
           .unwrap_or("unidentified".to_owned())
       ),
     }
+  }
+
+  fn device_id(&self) -> u16 {
+    self.device.device_descriptor().unwrap().product_id()
   }
 }
 
