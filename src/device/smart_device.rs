@@ -26,20 +26,20 @@ impl<'a> SmartDevice<'a> {
       LedState::On => {
         let mut data = led_message();
 
+        // 5..35 controls the first strip
         for i in (5..35).step_by(3) {
-          // 5..35 controls the first strip
           data[i + 0] = 0xff; // G
           data[i + 1] = 0x00; // R
           data[i + 2] = 0x00; // B
         }
+        // 35..62 controls second strip -1
         for i in (35..62).step_by(3) {
-          // 35..62 controls second strip -1
           data[i + 0] = 0x00; // G
           data[i + 1] = 0xff; // R
           data[i + 2] = 0x00; // B
         }
+        // 65..68 controls the last led
         for i in (65..68).step_by(3) {
-          // 65..68 controls the last led
           data[i + 0] = 0x00; // G
           data[i + 1] = 0x00; // R
           data[i + 2] = 0xff; // B
