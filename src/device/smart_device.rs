@@ -34,6 +34,22 @@ impl Color {
       b: 0x00,
     }
   }
+
+  pub fn green() -> Color {
+    Color {
+      r: 0x00,
+      g: 0xff,
+      b: 0x00,
+    }
+  }
+
+  pub fn blue() -> Color {
+    Color {
+      r: 0x00,
+      g: 0x00,
+      b: 0xff,
+    }
+  }
 }
 
 impl<'a> SmartDevice<'a> {

@@ -33,6 +33,8 @@ fn main() {
         // while: `$ krake leds breathing` would apply to both, so would `leds off`
         Some(state) => match state.as_str() {
           "red" => leds(Color::red()),
+          "green" => leds(Color::green()),
+          "blue" => leds(Color::blue()),
           "white" => leds(Color::white()),
           "off" => leds(Color::off()),
           _ => {
@@ -41,7 +43,7 @@ fn main() {
           },
         },
         None => {
-          println!("What state for your LEDs? (off|red|white)");
+          println!("What state for your LEDs? (off|red|green|blue|white)");
           exit(1);
         },
       },
