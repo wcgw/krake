@@ -11,7 +11,8 @@ mod device;
 
 //use crate::device::kraken;
 //use crate::device::smart_device;
-use crate::device::UsbDevice;
+use crate::device::smart_device::Color;
+use crate::device::smart_device::SmartDevice;
 use crate::device::{Device, DeviceManager};
 
 fn main() {
@@ -31,15 +32,18 @@ fn main() {
         // So that: `$ krake leds candle` would only affect the case, no-ops on Kraken
         // while: `$ krake leds breathing` would apply to both, so would `leds off`
         Some(state) => match state.as_str() {
-          "on" => leds_on(),
-          "off" => leds_off(),
+          "red" => leds(Color::red()),
+          "green" => leds(Color::green()),
+          "blue" => leds(Color::blue()),
+          "white" => leds(Color::white()),
+          "off" => leds(Color::off()),
           _ => {
             println!("Unknown state '{}' for LEDs!", state);
             exit(1);
           },
         },
         None => {
-          println!("What state for your LEDs? (on|off)");
+          println!("What state for your LEDs? (off|red|green|blue|white)");
           exit(1);
         },
       },
@@ -55,82 +59,38 @@ fn main() {
   }
 }
 
-fn leds_off() -> () {
-  //  let context = libusb::Context::new().unwrap();
-  //  let first_device = find_first_device(smart_device::PRODUCT_ID, &context);
-  //  match first_device {
-  //    Some(device) => match device.active_config_descriptor() {
-  //      Ok(config_desc) => {
-  //        if config_desc.num_interfaces() != 1 {
-  //          println!("Dunno what interface to choose here! :(");
-  //          exit(1);
-  //        }
-  //        match config_desc.interfaces().last() {
-  //          Some(inter) => {
-  //            let desc = inter.descriptors().next().unwrap();
-  //            for endpoint in desc.endpoint_descriptors() {
-  //              if endpoint.direction() == Direction::In
-  //                && endpoint.usage_type() == UsageType::Data
-  //                && endpoint.transfer_type() == TransferType::Interrupt
-  //              {
-  //                match get_usb_device(&device) {
-  //                  Some(usb_device) => {
-  //                    let mut handle = usb_device.handle;
-  //                    let claimed = handle.kernel_driver_active(inter.number()).unwrap();
-  //                    if claimed {
-  //                      println!("Detaching kernel driver!");
-  //                      handle.detach_kernel_driver(inter.number()).unwrap();
-  //                    }
-  //                    match handle.claim_interface(inter.number()) {
-  //                      Ok(()) => match handle.write_interrupt(endpoint.number(), &[0], usb_device.timeout) {
-  //                        Ok(written) => {
-  //                          println!("LEDs off! Wrote {} bytes", written);
-  //                        },
-  //                        Err(err) => {
-  //                          println!("Failed! {}", err);
-  //                          exit(1);
-  //                        },
-  //                      },
-  //                      Err(err) => {
-  //                        println!("Couldn't claim device: {}", err);
-  //                        exit(1);
-  //                      },
-  //                    }
-  //                    if claimed {
-  //                      let result = handle.attach_kernel_driver(inter.number());
-  //                      if result.is_err() {
-  //                        println!("Error re attaching kernel driver: {}", result.err().unwrap())
-  //                      }
-  //                    }
-  //                  },
-  //                  None => {
-  //                    println!("Couldn't open device!");
-  //                    exit(1);
-  //                  },
-  //                }
-  //              }
-  //            }
-  //          },
-  //          None => {
-  //            println!("No interface!");
-  //            exit(1);
-  //          },
-  //        }
-  //      },
-  //      Err(err) => {
-  //        println!("No active config: {}", err);
-  //        exit(1);
-  //      },
-  //    },
-  //    None => {
-  //      println!("No device found!");
-  //      exit(1);
-  //    },
-  //  }
-}
+fn leds(color: Color) -> () {
+  match DeviceManager::new() {
+    Ok(device_manager) => {
+      let devices = device_manager.all();
 
-fn leds_on() -> () {
-  println!("LEDs on!")
+      if devices.len() > 0 {
+        for device in devices {
+          match device {
+            Ok(device) => {
+              if device.device_id() == device::smart_device::PRODUCT_ID {
+                let mut smart_device = SmartDevice::new(device);
+                match smart_device.leds(color.clone()) {
+                  Err(err) => {
+                    println!("Couldn't change LEDs: {}", err);
+                    exit(1)
+                  },
+                  Ok(()) => {},
+                }
+              }
+            },
+            Err(msg) => println!("Error: {}", msg),
+          }
+        }
+      } else {
+        println!("No NZXT devices found!");
+      }
+    },
+    Err(msg) => {
+      println!("Couldn't create DeviceManager: {}", msg);
+      exit(1)
+    },
+  }
 }
 
 //fn find_first_device(product_id: u16, context: &Context) -> Option<Device> {
@@ -152,7 +112,10 @@ fn list_nzxt_devices() -> () {
 
       if devices.len() > 0 {
         for device in devices {
-          device.print_info();
+          match device {
+            Ok(device) => device.print_info(),
+            Err(msg) => println!("Error: {}", msg),
+          }
         }
       } else {
         println!("No NZXT devices found!");
