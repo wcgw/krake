@@ -1,5 +1,4 @@
-use crate::device::UsbDevice;
-use libusb::{Direction, TransferType, UsageType};
+use crate::device::{UsbDevice, Device};
 
 pub const PRODUCT_ID: u16 = 0x1714;
 
@@ -79,66 +78,7 @@ impl<'a> SmartDevice<'a> {
       data[i + 2] = color.b; // B
     }
 
-    self.write(&data)
-  }
-
-  fn write(&mut self, data: &[u8; 128]) -> Result<(), String> {
-    match self.usb_device.device.active_config_descriptor() {
-      Ok(config_desc) => {
-        if config_desc.num_interfaces() != 1 {
-          return Err("Dunno what interface to choose here! :(".to_owned());
-        }
-        match config_desc.interfaces().last() {
-          Some(inter) => {
-            let desc = inter.descriptors().next().unwrap();
-            for endpoint in desc.endpoint_descriptors() {
-              if endpoint.direction() == Direction::In
-                && endpoint.usage_type() == UsageType::Data
-                && endpoint.transfer_type() == TransferType::Interrupt
-              {
-                let handle = &mut self.usb_device.handle;
-                let claimed = handle.kernel_driver_active(inter.number()).unwrap();
-                if claimed {
-                  println!("Detaching kernel driver!");
-                  handle.detach_kernel_driver(inter.number()).unwrap();
-                }
-                match handle.claim_interface(inter.number()) {
-                  Ok(()) => match handle.write_interrupt(endpoint.number(), data, self.usb_device.timeout) {
-                    Ok(written) => {
-                      println!(
-                        "Wrote {} bytes to endpoint {} [0x{:x}]",
-                        written,
-                        endpoint.number(),
-                        endpoint.address()
-                      );
-                    },
-                    Err(err) => {
-                      return Err(format!("Failed! {}", err));
-                    },
-                  },
-                  Err(err) => {
-                    return Err(format!("Couldn't claim device: {}", err));
-                  },
-                }
-                if claimed {
-                  let result = handle.attach_kernel_driver(inter.number());
-                  if result.is_err() {
-                    println!("Error re attaching kernel driver: {}", result.err().unwrap())
-                  }
-                }
-              }
-            }
-          },
-          None => {
-            return Err(format!("No interface!"));
-          },
-        }
-      },
-      Err(err) => {
-        return Err(format!("No active config: {}", err));
-      },
-    }
-    Ok(())
+    self.usb_device.write(&data)
   }
 }
 
@@ -149,10 +89,10 @@ fn led_message() -> [u8; 128] {
   data[2] = 0x00; // document me
   data[3] = 0x00; // document me
   data[4] = 0x02; // document me
-                  // [GRB] colors for 19 leds
+  // [GRB] colors for 19 leds
   data[63] = 0x00; // WTF?
   data[64] = 0x03; // WTF?
   data[65] = 0x00; // WTF?
-                   // [GRB] last led here
+  // [GRB] last led here
   data
 }
