@@ -2,8 +2,8 @@ use crate::device::{UsbDevice, Device};
 
 pub const PRODUCT_ID: u16 = 0x1714;
 
-pub struct SmartDevice<'a> {
-  usb_device: UsbDevice<'a>,
+pub struct SmartDevice {
+  usb_device: UsbDevice,
 }
 
 #[derive(Clone, Debug)]
@@ -51,8 +51,8 @@ impl Color {
   }
 }
 
-impl<'a> SmartDevice<'a> {
-  pub fn new(usb_device: UsbDevice<'a>) -> Self {
+impl SmartDevice {
+  pub fn new(usb_device: UsbDevice) -> Self {
     SmartDevice { usb_device }
   }
 
