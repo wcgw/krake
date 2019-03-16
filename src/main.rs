@@ -2,15 +2,8 @@ extern crate hidapi;
 
 use std::process::exit;
 
-//use libusb::Device;
-//use libusb::Direction;
-//use libusb::TransferType;
-//use libusb::UsageType;
-
 mod device;
 
-//use crate::device::kraken;
-//use crate::device::smart_device;
 use crate::device::smart_device::Color;
 use crate::device::smart_device::SmartDevice;
 use crate::device::{Device, DeviceManager};
@@ -92,18 +85,6 @@ fn leds(color: Color) -> () {
     },
   }
 }
-
-//fn find_first_device(product_id: u16, context: &Context) -> Option<Device> {
-//  for device in context.devices().unwrap().iter() {
-//    let device_desc = device.device_descriptor().unwrap();
-//    if device_desc.vendor_id() == device::NZXT_PID {
-//      if device_desc.product_id() == product_id {
-//        return Some(device);
-//      }
-//    }
-//  }
-//  None
-//}
 
 fn list_nzxt_devices() -> () {
   match DeviceManager::new() {
