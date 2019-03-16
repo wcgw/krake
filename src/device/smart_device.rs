@@ -1,4 +1,4 @@
-use crate::device::{UsbDevice, Device};
+use crate::device::{Device, UsbDevice};
 
 pub const PRODUCT_ID: u16 = 0x1714;
 
@@ -89,10 +89,10 @@ fn led_message() -> [u8; 128] {
   data[2] = 0x00; // document me
   data[3] = 0x00; // document me
   data[4] = 0x02; // document me
-  // [GRB] colors for 19 leds
+                  // [GRB] colors for 19 leds
   data[63] = 0x00; // WTF?
   data[64] = 0x03; // WTF?
   data[65] = 0x00; // WTF?
-  // [GRB] last led here
+                   // [GRB] last led here
   data
 }

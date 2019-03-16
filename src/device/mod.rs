@@ -23,7 +23,17 @@ impl DeviceManager {
 
         match usb_device {
           Ok(dev) => devices.push(Ok(dev)),
-          Err(msg) => devices.push(Err(format!("Couldn't open device: {}", msg))),
+          Err(msg) => {
+            let manufacturer = device.manufacturer_string.clone().unwrap_or("unknown".to_owned());
+            let product = device.product_string.clone().unwrap_or("unknown".to_owned());
+            devices.push(Err(format!(
+              "Couldn't open device at {} ({} by {}): {}",
+              device.path.to_str().unwrap_or("<unparsable path>"),
+              manufacturer,
+              product,
+              msg
+            )))
+          },
         }
       }
     }
@@ -44,21 +54,36 @@ pub struct UsbDevice {
 
 impl<'a> Device for UsbDevice {
   fn print_info(&self) -> () {
-
     match self.product_id {
       kraken::X62::PRODUCT_ID => println!(
         "NZXT Kraken X62 [s/n: {}]",
-        self.device.get_serial_number_string().unwrap().unwrap_or("unknown".to_owned()),
+        self
+          .device
+          .get_serial_number_string()
+          .unwrap()
+          .unwrap_or("unknown".to_owned()),
       ),
       smart_device::PRODUCT_ID => println!(
         "NZXT Smart Device [s/n: {}]",
-        self.device.get_serial_number_string().unwrap().unwrap_or("unknown".to_owned()),
+        self
+          .device
+          .get_serial_number_string()
+          .unwrap()
+          .unwrap_or("unknown".to_owned()),
       ),
       _ => println!(
         "Unknown {} Device: {:04x} (product: {})",
-        self.device.get_manufacturer_string().unwrap().unwrap_or("unknown".to_owned()),
+        self
+          .device
+          .get_manufacturer_string()
+          .unwrap()
+          .unwrap_or("unknown".to_owned()),
         self.product_id,
-        self.device.get_product_string().unwrap().unwrap_or("unknown".to_owned()),
+        self
+          .device
+          .get_product_string()
+          .unwrap()
+          .unwrap_or("unknown".to_owned()),
       ),
     }
   }
