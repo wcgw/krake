@@ -1,9 +1,14 @@
-use crate::device::{Device, UsbDevice};
+use crate::device::{Device, FanStatus, FirmwareStatus, NoiseStatus, PowerStatus, Status, UsbDevice};
 
 pub const PRODUCT_ID: u16 = 0x1714;
+pub const SPEED_CHANNELS: u8 = 3;
 
 pub struct SmartDevice {
   usb_device: UsbDevice,
+}
+
+pub enum LedDevice {
+    Hue,
 }
 
 #[derive(Clone, Debug)]
@@ -78,7 +83,91 @@ impl SmartDevice {
       data[i + 2] = color.b; // B
     }
 
-    self.usb_device.write(&data)
+    self.usb_device.write(&data).map(|_| ())
+  }
+
+  pub fn status(&mut self) -> Vec<Status> {
+      // Report:
+      // Byte  | Meaning
+      // ------|-----------
+      //   00  | ?
+      //   01  | Noise Level
+      //   02  | ?
+      //   03  | RPM in multiples of 256
+      //   04  | RPM units
+      //   05  | ?
+      //   06  | ?
+      //   07  | Voltage
+      //   08  | Voltage pt 2
+      //   09  | ?
+      //   10  | Amp draw
+      //   11  | Firmware Version Major
+      //   12  | Firmware Version Minor
+      //   13  | Firmware Version Minor pt 2
+      //   14  | Firmware Version Patchlevel
+      //   15  | 2 least significant bits used for power type, rest for sensor number
+      //   16  | LED accessory type
+      //   17  | LED count
+    let mut statuses = vec![];
+
+    let buffers =
+        (0..SPEED_CHANNELS).map(|_| {
+            let mut buf: [u8; 21] = [0; 21];
+            self.usb_device.read(&mut buf);
+            buf
+        }).collect::<Vec<[u8; 21]>>();
+
+    buffers.first().map(|buf| {
+       statuses.push(Status::Firmware(FirmwareStatus {
+           major: buf[11] as u16,
+           minor: (buf[12] as u16) << 8 | (buf[13] as u16),
+           patch: buf[14] as u16,
+       }));
+
+       statuses.push(Status::Noise(NoiseStatus { db: buf[1] }));
+
+       let led_count = buf[17];
+
+       if led_count > 0 {
+           let led_type = match buf[16] {
+               0x00 | 0x01 => LedDevice::Hue,
+               other => panic!("Unknown device {}", other),
+           };
+       };
+    });
+
+    for buf in buffers {
+      // println!(
+      //   "{:?}",
+      //   buf.iter().map(|byte| format!("{:02x}", byte)).collect::<Vec<String>>()
+      // );
+      let num = buf[15] >> 3 + 1;
+      let speed_type = buf[15] & 0x03;
+      let rpm = (buf[3] as u16) << 8 | (buf[4] as u16);
+      let mv = (buf[7] as u16) * 100 + (buf[8] as u16);
+      let ma = (buf[10] as u16) * 10;
+
+      let status = match speed_type {
+        0x00 => Status::UnpoweredFan,
+        0x01 => Status::Fan(FanStatus {
+          power: PowerStatus::DC,
+          ma: ma,
+          mv: mv,
+          rpm: rpm,
+        }),
+        0x02 => Status::Fan(FanStatus {
+          power: PowerStatus::PWM,
+          ma: ma,
+          mv: mv,
+          rpm: rpm,
+        }),
+        other => unreachable!("Unknown speed type {:02x}", other),
+      };
+
+      println!("Fan {:02x}, {:?}", num, status);
+      statuses.push(status);
+    }
+    statuses
   }
 }
 

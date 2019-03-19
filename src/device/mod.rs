@@ -41,10 +41,45 @@ impl DeviceManager {
   }
 }
 
+#[derive(Debug)]
+pub enum PowerStatus {
+  PWM,
+  DC,
+}
+
+#[derive(Debug)]
+pub struct FanStatus {
+  pub power: PowerStatus,
+  pub rpm: u16,
+  pub mv: u16,
+  pub ma: u16,
+}
+
+#[derive(Debug)]
+pub struct NoiseStatus {
+  pub db: u8,
+}
+
+#[derive(Debug)]
+pub struct FirmwareStatus {
+    pub major: u16,
+    pub minor: u16,
+    pub patch: u16,
+}
+
+#[derive(Debug)]
+pub enum Status {
+  UnpoweredFan,
+  Fan(FanStatus),
+  Noise(NoiseStatus),
+  Firmware(FirmwareStatus),
+}
+
 pub trait Device {
   fn print_info(&self) -> ();
   fn device_id(&self) -> u16;
-  fn write(&mut self, data: &[u8]) -> Result<(), String>;
+  fn write(&mut self, data: &[u8]) -> Result<usize, String>;
+  fn read(&self, buf: &mut [u8]) -> Result<usize, String>;
 }
 
 pub struct UsbDevice {
@@ -92,14 +127,28 @@ impl<'a> Device for UsbDevice {
     self.product_id
   }
 
-  fn write(&mut self, data: &[u8]) -> Result<(), String> {
+  fn write(&mut self, data: &[u8]) -> Result<usize, String> {
     let mut vec = vec![];
     vec.extend_from_slice(data);
-    match self.device.write(&vec) {
-      Ok(written) => println!("Wrote {} bytes to endpoint", written),
-      Err(err) => return Err(err.to_string()),
-    };
-    Ok(())
+    self
+      .device
+      .write(&vec)
+      .map(|written| {
+        println!("Wrote {} bytes to endpoint", written);
+        written
+      })
+      .map_err(|err| err.to_string())
+  }
+
+  fn read(&self, buf: &mut [u8]) -> Result<usize, String> {
+    self
+      .device
+      .read(buf)
+      .map(|read| {
+        println!("Read {} bytes to endpoint", read);
+        read
+      })
+      .map_err(|err| err.to_string())
   }
 }
 

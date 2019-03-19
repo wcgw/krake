@@ -13,6 +13,7 @@ fn main() {
     Some(command) => match command.as_str() {
       "version" => println!("Krake v0.0.1 - Controls for NZXT bells & whistles"),
       "list" => list_nzxt_devices(),
+      "status" => status(),
 
       // Probably want to identify a device here first...
       // Not sure how this is best done tho? If only one, easy... if only one of one type?
@@ -106,5 +107,23 @@ fn list_nzxt_devices() -> () {
       println!("Couldn't create DeviceManager: {}", msg);
       exit(1)
     },
+  }
+}
+
+fn status() -> () {
+  let devices = DeviceManager::new()
+    .and_then(|dm| Ok(dm.all()))
+    .expect("No NZXT devices found!");
+
+  for device in devices {
+    match device {
+      Ok(device) => {
+        if device.device_id() == device::smart_device::PRODUCT_ID {
+          let mut smart_device = SmartDevice::new(device);
+          println!("{:?}", smart_device.status());
+        }
+      },
+      Err(msg) => println!("Error: {}", msg),
+    }
   }
 }
