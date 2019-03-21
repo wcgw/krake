@@ -3,23 +3,10 @@ Controls for NZXT bells and whistles
 
 ## WIP
 
-### Requirements
-
-Have `pkg-config` & `libusb` installed
-
-On MacOS w/ home brew:
-
-```
-$ brew install pkg-config
-$ brew install libusb
-```
-
 ### Building and running
 ```
 $ cargo build --release
-$ ./target/release/krake list
-Bus 001 Device 008: NZXT Smart Device
-Bus 001 Device 006: NZXT Kraken X62
+$ ./target/release/krake leds off
 $
 ```
 
