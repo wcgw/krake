@@ -69,7 +69,7 @@ impl<'a> Device for UsbDevice {
           .device
           .get_serial_number_string()
           .unwrap()
-          .unwrap_or_else(||"unknown".to_owned()),
+          .unwrap_or_else(|| "unknown".to_owned()),
       ),
       _ => println!(
         "Unknown {} Device: {:04x} (product: {})",

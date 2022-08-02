@@ -1,7 +1,7 @@
 # krake
 Controls for NZXT bells and whistles
 
-![Build](https://github.com/wcgw/krake/timeknight/actions/workflows/rust.yml/badge.svg)
+![Build](https://github.com/wcgw/krake/actions/workflows/rust.yml/badge.svg)
 
 ## WIP
 
@@ -15,7 +15,7 @@ $
 ### Contributing
 
 ```
-$ cargo +nigthly fmt
+$ cargo fmt && cargo clippy
 ```
 
 
