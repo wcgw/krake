@@ -52,23 +52,20 @@ fn main() {
   }
 }
 
-fn leds(color: Color) -> () {
+fn leds(color: Color) {
   match DeviceManager::new() {
     Ok(device_manager) => {
       let devices = device_manager.all();
 
-      if devices.len() > 0 {
+      if !devices.is_empty() {
         for device in devices {
           match device {
             Ok(device) => {
               if device.device_id() == device::smart_device::PRODUCT_ID {
                 let mut smart_device = SmartDevice::new(device);
-                match smart_device.leds(color.clone()) {
-                  Err(err) => {
-                    println!("Couldn't change LEDs: {}", err);
-                    exit(1)
-                  },
-                  Ok(()) => {},
+                if let Err(err) = smart_device.leds(color.clone()) {
+                  println!("Couldn't change LEDs: {}", err);
+                  exit(1)
                 }
               }
             },
@@ -86,12 +83,12 @@ fn leds(color: Color) -> () {
   }
 }
 
-fn list_nzxt_devices() -> () {
+fn list_nzxt_devices() {
   match DeviceManager::new() {
     Ok(device_manager) => {
       let devices = device_manager.all();
 
-      if devices.len() > 0 {
+      if !devices.is_empty() {
         for device in devices {
           match device {
             Ok(device) => device.print_info(),
