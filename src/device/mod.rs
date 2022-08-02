@@ -52,7 +52,7 @@ pub struct UsbDevice {
   product_id: u16,
 }
 
-impl<'a> Device for UsbDevice {
+impl Device for UsbDevice {
   fn print_info(&self) {
     match self.product_id {
       kraken::X62::PRODUCT_ID => println!(
