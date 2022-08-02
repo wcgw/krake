@@ -17,18 +17,18 @@ impl DeviceManager {
 
   pub fn all(&self) -> Vec<Result<UsbDevice, String>> {
     let mut devices = vec![];
-    for device in self.context.devices().iter() {
-      if device.vendor_id == NZXT_PID {
-        let usb_device: Result<UsbDevice, String> = device.open_device(&self.context).try_into(device.product_id);
+    for device in self.context.device_list() {
+      if device.vendor_id() == NZXT_PID {
+        let usb_device: Result<UsbDevice, String> = device.open_device(&self.context).try_into(device.product_id());
 
         match usb_device {
           Ok(dev) => devices.push(Ok(dev)),
           Err(msg) => {
-            let manufacturer = device.manufacturer_string.clone().unwrap_or_else(|| "unknown".to_owned());
-            let product = device.product_string.clone().unwrap_or_else(|| "unknown".to_owned());
+            let manufacturer = device.manufacturer_string().unwrap_or("unknown");
+            let product = device.product_string().unwrap_or("unknown");
             devices.push(Err(format!(
               "Couldn't open device at {} ({} by {}): {}",
-              device.path.to_str().unwrap_or("<unparsable path>"),
+              device.path().to_str().unwrap_or("<unparsable path>"),
               manufacturer,
               product,
               msg
