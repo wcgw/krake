@@ -16,6 +16,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - name: Install deps
+      run: |
+        sudo apt-get update -y
+        sudo apt-get -y install libusb-1.0-0-dev
     - name: Check
       run: cargo fmt --all -- --check && cargo clippy -- -D warnings
     - name: Build
