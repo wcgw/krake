@@ -2,9 +2,9 @@ name: Rust
 
 on:
   push:
-    branches: [ main ]
+    branches: [ "master" ]
   pull_request:
-    branches: [ main ]
+    branches: [ "master" ]
 
 env:
   CARGO_TERM_COLOR: always
@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Check
       run: cargo fmt --all -- --check && cargo clippy -- -D warnings
     - name: Build
