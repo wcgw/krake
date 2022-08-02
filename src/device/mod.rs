@@ -17,18 +17,18 @@ impl DeviceManager {
 
   pub fn all(&self) -> Vec<Result<UsbDevice, String>> {
     let mut devices = vec![];
-    for device in self.context.devices().iter() {
-      if device.vendor_id == NZXT_PID {
-        let usb_device: Result<UsbDevice, String> = device.open_device(&self.context).try_into(device.product_id);
+    for device in self.context.device_list() {
+      if device.vendor_id() == NZXT_PID {
+        let usb_device: Result<UsbDevice, String> = device.open_device(&self.context).try_into(device.product_id());
 
         match usb_device {
           Ok(dev) => devices.push(Ok(dev)),
           Err(msg) => {
-            let manufacturer = device.manufacturer_string.clone().unwrap_or("unknown".to_owned());
-            let product = device.product_string.clone().unwrap_or("unknown".to_owned());
+            let manufacturer = device.manufacturer_string().unwrap_or("unknown");
+            let product = device.product_string().unwrap_or("unknown");
             devices.push(Err(format!(
               "Couldn't open device at {} ({} by {}): {}",
-              device.path.to_str().unwrap_or("<unparsable path>"),
+              device.path().to_str().unwrap_or("<unparsable path>"),
               manufacturer,
               product,
               msg
@@ -42,7 +42,7 @@ impl DeviceManager {
 }
 
 pub trait Device {
-  fn print_info(&self) -> ();
+  fn print_info(&self);
   fn device_id(&self) -> u16;
   fn write(&mut self, data: &[u8]) -> Result<(), String>;
 }
@@ -53,7 +53,7 @@ pub struct UsbDevice {
 }
 
 impl<'a> Device for UsbDevice {
-  fn print_info(&self) -> () {
+  fn print_info(&self) {
     match self.product_id {
       kraken::X62::PRODUCT_ID => println!(
         "NZXT Kraken X62 [s/n: {}]",
@@ -61,7 +61,7 @@ impl<'a> Device for UsbDevice {
           .device
           .get_serial_number_string()
           .unwrap()
-          .unwrap_or("unknown".to_owned()),
+          .unwrap_or_else(|| "unknown".to_owned()),
       ),
       smart_device::PRODUCT_ID => println!(
         "NZXT Smart Device [s/n: {}]",
@@ -69,7 +69,7 @@ impl<'a> Device for UsbDevice {
           .device
           .get_serial_number_string()
           .unwrap()
-          .unwrap_or("unknown".to_owned()),
+          .unwrap_or_else(||"unknown".to_owned()),
       ),
       _ => println!(
         "Unknown {} Device: {:04x} (product: {})",
@@ -77,13 +77,13 @@ impl<'a> Device for UsbDevice {
           .device
           .get_manufacturer_string()
           .unwrap()
-          .unwrap_or("unknown".to_owned()),
+          .unwrap_or_else(|| "unknown".to_owned()),
         self.product_id,
         self
           .device
           .get_product_string()
           .unwrap()
-          .unwrap_or("unknown".to_owned()),
+          .unwrap_or_else(|| "unknown".to_owned()),
       ),
     }
   }
@@ -104,7 +104,7 @@ impl<'a> Device for UsbDevice {
 }
 
 trait TryInto<T> {
-  fn try_into(self: Self, id: u16) -> Result<T, String>;
+  fn try_into(self, id: u16) -> Result<T, String>;
 }
 
 impl TryInto<UsbDevice> for hidapi::HidResult<hidapi::HidDevice> {

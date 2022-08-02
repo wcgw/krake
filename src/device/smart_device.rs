@@ -61,19 +61,19 @@ impl SmartDevice {
 
     // 5..35 controls the first strip
     for i in (5..35).step_by(3) {
-      data[i + 0] = color.g; // G
+      data[i] = color.g; // G
       data[i + 1] = color.r; // R
       data[i + 2] = color.b; // B
     }
     // 35..62 controls second strip -1
     for i in (35..62).step_by(3) {
-      data[i + 0] = color.g; // G
+      data[i] = color.g; // G
       data[i + 1] = color.r; // R
       data[i + 2] = color.b; // B
     }
     // 65..68 controls the last led
     for i in (65..68).step_by(3) {
-      data[i + 0] = color.g; // G
+      data[i] = color.g; // G
       data[i + 1] = color.r; // R
       data[i + 2] = color.b; // B
     }
