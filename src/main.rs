@@ -1,6 +1,5 @@
+extern crate clap;
 extern crate hidapi;
-
-use std::process::exit;
 
 mod device;
 
@@ -8,47 +7,46 @@ use crate::device::smart_device::Color;
 use crate::device::smart_device::SmartDevice;
 use crate::device::{Device, DeviceManager};
 
-fn main() {
-  match std::env::args().nth(1) {
-    Some(command) => match command.as_str() {
-      "version" => println!("Krake v0.0.1 - Controls for NZXT bells & whistles"),
-      "list" => list_nzxt_devices(),
+use clap::{App, SubCommand};
 
-      // Probably want to identify a device here first...
-      // Not sure how this is best done tho? If only one, easy... if only one of one type?
-      // A config file where one gets to id a device based of it's address and type?
-      // e.g. `gpu` is the cooler on my graphic card? `case` is the Smart Device of my H500i?
-      "leds" => match std::env::args().nth(2) {
-        // Then, per action, ask the device if it known about e.g. the color scheme for LEDs?
-        // Or default to all if not specified (works for `off, but what about e.g. `candle`?)
-        // Only apply to the ones that resolved? Only error in case none resolved?
-        // So that: `$ krake leds candle` would only affect the case, no-ops on Kraken
-        // while: `$ krake leds breathing` would apply to both, so would `leds off`
-        Some(state) => match state.as_str() {
-          "red" => leds(Color::red()),
-          "green" => leds(Color::green()),
-          "blue" => leds(Color::blue()),
-          "white" => leds(Color::white()),
-          "off" => leds(Color::off()),
-          _ => {
-            println!("Unknown state '{}' for LEDs!", state);
-            exit(1);
-          },
-        },
-        None => {
-          println!("What state for your LEDs? (off|red|green|blue|white)");
-          exit(1);
-        },
-      },
-      _ => {
-        println!("Unsupported command: {}", command);
-        exit(1);
-      },
+const VERSION: &str = env!("CARGO_PKG_VERSION");
+
+fn main() {
+  let cmdline = App::new("Krake")
+    .version(VERSION)
+    .author("The wcgw team - github.com/wcgw")
+    .about("Controls for NZXT bells and whistles")
+    .subcommand_required(true)
+    .subcommand(
+      SubCommand::with_name("list")
+        .display_order(1)
+        .about("Lists all devices"),
+    )
+    .subcommand(
+      SubCommand::with_name("leds")
+        .display_order(2)
+        .about("Controls the LEDs")
+        .subcommand_required(true)
+        .subcommand(SubCommand::with_name("off").display_order(1))
+        .subcommand(SubCommand::with_name("white").display_order(2))
+        .subcommand(SubCommand::with_name("red").display_order(3))
+        .subcommand(SubCommand::with_name("green").display_order(4))
+        .subcommand(SubCommand::with_name("blue").display_order(5)),
+    );
+
+  match cmdline.get_matches().subcommand() {
+    Some(("list", _)) => list_nzxt_devices(),
+    Some(("leds", sub)) => match sub.subcommand() {
+      Some(("off", _)) => leds(Color::off()),
+      Some(("red", _)) => leds(Color::red()),
+      Some(("green", _)) => leds(Color::green()),
+      Some(("blue", _)) => leds(Color::blue()),
+      Some(("white", _)) => leds(Color::white()),
+      Some((color, _)) => unreachable!("Unknown color for leds '{}'", color),
+      None => unreachable!("Should provide a subcommand"),
     },
-    None => {
-      println!("Please provide a command: (list|leds|version)");
-      exit(1);
-    },
+    Some((cmd, _)) => unreachable!("Unknown subcommand '{}'", cmd),
+    None => unreachable!("Should provide a subcommand"),
   }
 }
 
@@ -65,7 +63,6 @@ fn leds(color: Color) {
                 let mut smart_device = SmartDevice::new(device);
                 if let Err(err) = smart_device.leds(color.clone()) {
                   println!("Couldn't change LEDs: {}", err);
-                  exit(1)
                 }
               }
             },
@@ -78,7 +75,6 @@ fn leds(color: Color) {
     },
     Err(msg) => {
       println!("Couldn't create DeviceManager: {}", msg);
-      exit(1)
     },
   }
 }
@@ -101,7 +97,6 @@ fn list_nzxt_devices() {
     },
     Err(msg) => {
       println!("Couldn't create DeviceManager: {}", msg);
-      exit(1)
     },
   }
 }
