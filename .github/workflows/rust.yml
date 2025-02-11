@@ -19,7 +19,7 @@ jobs:
     - name: Install deps
       run: |
         sudo apt-get update -y
-        sudo apt-get -y install libusb-1.0-0-dev
+        sudo apt-get -y install libudev-dev libusb-1.0-0-dev
     - name: Check
       run: cargo fmt --all -- --check && cargo clippy -- -D warnings
     - name: Build
