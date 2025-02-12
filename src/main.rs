@@ -7,31 +7,27 @@ use crate::device::smart_device::Color;
 use crate::device::smart_device::SmartDevice;
 use crate::device::{Device, DeviceManager};
 
-use clap::{App, SubCommand};
+use clap::Command;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 fn main() {
-  let cmdline = App::new("Krake")
+  let cmdline = Command::new("Krake")
     .version(VERSION)
     .author("The wcgw team - github.com/wcgw")
     .about("Controls for NZXT bells and whistles")
     .subcommand_required(true)
+    .subcommand(Command::new("list").display_order(1).about("Lists all devices"))
     .subcommand(
-      SubCommand::with_name("list")
-        .display_order(1)
-        .about("Lists all devices"),
-    )
-    .subcommand(
-      SubCommand::with_name("leds")
+      Command::new("leds")
         .display_order(2)
         .about("Controls the LEDs")
         .subcommand_required(true)
-        .subcommand(SubCommand::with_name("off").display_order(1))
-        .subcommand(SubCommand::with_name("white").display_order(2))
-        .subcommand(SubCommand::with_name("red").display_order(3))
-        .subcommand(SubCommand::with_name("green").display_order(4))
-        .subcommand(SubCommand::with_name("blue").display_order(5)),
+        .subcommand(Command::new("off").display_order(1))
+        .subcommand(Command::new("white").display_order(2))
+        .subcommand(Command::new("red").display_order(3))
+        .subcommand(Command::new("green").display_order(4))
+        .subcommand(Command::new("blue").display_order(5)),
     );
 
   match cmdline.get_matches().subcommand() {

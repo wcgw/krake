@@ -7,4 +7,4 @@ edition = "2018"
 
 [dependencies]
 hidapi = "*"
-clap = "3.2"
+clap = "4"
